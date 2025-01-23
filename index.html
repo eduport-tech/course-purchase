@@ -88,6 +88,7 @@
             <h2 class="text-2xl font-bold mb-6">Purchase Course</h2>
             <form id="purchase-form" novalidate>
                 <input type="text" name="name" placeholder="Full Name" class="w-full mb-4 p-2 border rounded" required>
+                <div id="name-error" class="text-red-500 text-sm mb-2 hidden">Please enter full name</div>
                 <input type="email" name="email" placeholder="Email Address" class="w-full mb-4 p-2 border rounded" required>
                 <div id="email-error" class="text-red-500 text-sm mb-2 hidden">Please enter a valid email address</div>
                 <input type="tel" name="phone" placeholder="Registered Mobile Number" class="w-full mb-4 p-2 border rounded" required>
@@ -226,9 +227,11 @@
             const phone = formData.get('phone');
 
             const emailError = document.getElementById('email-error');
+            const nameError = document.getElementById('name-error');
             const phoneError = document.getElementById('phone-error');
             const emailInput = document.querySelector('input[name="email"]');
             const phoneInput = document.querySelector('input[name="phone"]');
+            const nameInput = document.querySelector('input[name="name"]');
 
             let isValid = true;
 
@@ -236,6 +239,13 @@
             phoneError.classList.add('hidden');
             emailInput.classList.remove('error-input');
             phoneInput.classList.remove('error-input');
+            nameError.classList.add('hidden');
+
+            if (!formData.get('name')) {
+                nameError.classList.remove('hidden');
+                nameInput.classList.add('error-input');
+                isValid = false;
+            }
 
             if (!validateEmail(email)) {
                 emailError.classList.remove('hidden');
