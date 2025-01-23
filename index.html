@@ -24,14 +24,48 @@
         .animate-slide-in {
             animation: slideIn 0.3s ease forwards;
         }
+        .error-input {
+            border-color: red;
+        }
+        .grade-tab {
+            transition: all 0.3s ease;
+        }
+        .grade-tab.active {
+            background-color: #3B82F6;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="img.png" alt="Company Logo" class="h-10 mr-4">
+                <h1 class="text-xl font-bold text-gray-800 hidden md:block">Course Platform</h1>
+            </div>
+            <div class="text-gray-700 font-medium">
+                <a href="tel:+919876543210" class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3H8a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3L12 7 8 3"/>
+                    </svg>
+                    +91 98765 43210
+                </a>
+            </div>
+        </div>
+    </header>
+
     <div class="container mx-auto px-4 py-8">
         <header class="text-center mb-12 animate-slide-in">
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">Available Courses</h1>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Available Courses</h2>
             <p class="text-gray-600">Explore and purchase our courses</p>
         </header>
+
+        <div id="grade-tabs" class="flex justify-center space-x-4 mb-8">
+            <button onclick="filterCoursesByGrade('all')" class="grade-tab px-4 py-2 bg-blue-500 text-white rounded-lg active" data-grade="all">
+                All Grades
+            </button>
+        </div>
 
         <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="col-span-full text-center py-8">
@@ -41,7 +75,6 @@
         </div>
     </div>
 
-    <!-- Purchase Modal -->
     <div id="purchase-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-11/12 max-w-md relative p-6">
             <button onclick="closePurchaseModal()" class="absolute right-4 top-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
@@ -51,10 +84,12 @@
                 </svg>
             </button>
             <h2 class="text-2xl font-bold mb-6">Purchase Course</h2>
-            <form id="purchase-form">
+            <form id="purchase-form" novalidate>
                 <input type="text" name="name" placeholder="Full Name" class="w-full mb-4 p-2 border rounded" required>
                 <input type="email" name="email" placeholder="Email Address" class="w-full mb-4 p-2 border rounded" required>
+                <div id="email-error" class="text-red-500 text-sm mb-2 hidden">Please enter a valid email address</div>
                 <input type="tel" name="phone" placeholder="Registered Mobile Number" class="w-full mb-4 p-2 border rounded" required>
+                <div id="phone-error" class="text-red-500 text-sm mb-2 hidden">Please enter a valid 10-digit mobile number</div>
                 <input type="tel" name="alt-phone" placeholder="Alternative Mobile Number" class="w-full mb-4 p-2 border rounded">
                 <input type="hidden" name="course-id" id="selected-course-id">
                 <input type="hidden" name="course-amount" id="selected-course-amount">
@@ -65,7 +100,6 @@
         </div>
     </div>
 
-    <!-- Payment Confirmation Modal -->
     <div id="payment-confirmation" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-11/12 max-w-md p-6 text-center">
             <h2 class="text-2xl font-bold mb-4">Payment Confirmation</h2>
@@ -76,6 +110,7 @@
 
     <script>
         const API_URL = 'https://raw.githubusercontent.com/eduport-tech/course-purchase/refs/heads/main/data/res.json';
+        let allCourses = [];
 
         function getGoogleDriveThumbnail(fileId) {
             return `https://lh3.googleusercontent.com/d/${fileId}=w400-h300-p-k-nu`;
@@ -85,10 +120,46 @@
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                renderCourses(data.results);
+                allCourses = data.results;
+                console.log(allCourses);
+                renderCourses(allCourses);
+                createGradeTabs(allCourses);
             } catch (error) {
                 console.error('Error fetching courses:', error);
+                document.getElementById('courses-container').innerHTML =
+                    '<div class="col-span-full text-center text-red-500">Failed to load courses. Please try again later.</div>';
             }
+        }
+
+        function createGradeTabs(courses) {
+            const gradeTabs = document.getElementById('grade-tabs');
+            const uniqueGrades = [...new Set(courses.map(course => course.Grade))];
+
+            uniqueGrades.forEach(grade => {
+                const button = document.createElement('button');
+                button.textContent = `${grade}`.toUpperCase();
+                button.classList.add('grade-tab', 'px-4', 'py-2', 'bg-gray-200', 'rounded-lg');
+                button.setAttribute('data-grade', grade);
+                button.onclick = () => filterCoursesByGrade(grade);
+                gradeTabs.appendChild(button);
+            });
+        }
+
+        function filterCoursesByGrade(grade) {
+            const tabs = document.querySelectorAll('.grade-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active', 'bg-blue-500', 'text-white');
+                tab.classList.add('bg-gray-200');
+            });
+
+            const selectedTab = document.querySelector(`[data-grade="${grade}"]`);
+            selectedTab.classList.add('active', 'bg-blue-500', 'text-white');
+
+            const filteredCourses = grade === 'all'
+                ? allCourses
+                : allCourses.filter(course => course.Grade === grade);
+
+            renderCourses(filteredCourses);
         }
 
         function renderCourses(courses) {
@@ -97,7 +168,6 @@
                 const fileId = course['Course Image'].match(/\/d\/(.*?)\/view/)?.[1];
                 const thumbnailUrl = fileId ? getGoogleDriveThumbnail(fileId) : null;
 
-                // Calculate discounted price (half of original)
                 const originalPrice = parseInt(course['Batch Amount']);
                 const discountedPrice = Math.floor(originalPrice / 2);
 
@@ -108,10 +178,10 @@
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">${course['Course Name']}</h3>
-                        <p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']}</p>
+                        <p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']} | Grade: ${course.Grade.toUpperCase()}</p>
                         <div class="flex items-center mb-4">
-                            <p class="text-lg font-bold text-green-600 mr-3">₹${discountedPrice}</p>
-                            <p class="text-sm text-gray-500 line-through">₹${originalPrice}</p>
+                            <p class="text-sm text-gray-500 line-through mr-3">₹${originalPrice}</p>
+                            <p class="text-lg font-bold text-green-600">₹${discountedPrice}</p>
                         </div>
                         <button onclick="openPurchaseModal(${course['Batch ID']}, ${discountedPrice})"
                                 class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-center transition-colors duration-200">
@@ -120,7 +190,17 @@
                     </div>
                 </div>
                 `;
-            }).join('');
+            }).join('') || '<div class="col-span-full text-center text-gray-600">No courses found for this grade.</div>';
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        function validatePhone(phone) {
+            const re = /^[6-9]\d{9}$/;
+            return re.test(phone);
         }
 
         function openPurchaseModal(courseId, courseAmount) {
@@ -137,16 +217,42 @@
             e.preventDefault();
 
             const formData = new FormData(e.target);
-            const courseId = formData.get('course-id');
-            const courseAmount = formData.get('course-amount');
-            const name = formData.get('name');
             const email = formData.get('email');
             const phone = formData.get('phone');
 
-            // Razorpay configuration
+            const emailError = document.getElementById('email-error');
+            const phoneError = document.getElementById('phone-error');
+            const emailInput = document.querySelector('input[name="email"]');
+            const phoneInput = document.querySelector('input[name="phone"]');
+
+            let isValid = true;
+
+            emailError.classList.add('hidden');
+            phoneError.classList.add('hidden');
+            emailInput.classList.remove('error-input');
+            phoneInput.classList.remove('error-input');
+
+            if (!validateEmail(email)) {
+                emailError.classList.remove('hidden');
+                emailInput.classList.add('error-input');
+                isValid = false;
+            }
+
+            if (!validatePhone(phone)) {
+                phoneError.classList.remove('hidden');
+                phoneInput.classList.add('error-input');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            const courseId = formData.get('course-id');
+            const courseAmount = formData.get('course-amount');
+            const name = formData.get('name');
+
             var options = {
                 key: "rzp_test_sotrour4Ez6eFy",
-                amount: courseAmount * 100, // Convert to paise
+                amount: courseAmount * 100,
                 currency: "INR",
                 name: "Your Course Platform",
                 description: `Course Purchase: Batch ${courseId}`,
@@ -186,7 +292,6 @@
             };
         }
 
-        // Fetch courses on page load
         fetchCourses();
     </script>
 </body>
