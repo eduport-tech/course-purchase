@@ -103,12 +103,24 @@
     </div>
 
     <div id="payment-confirmation" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-11/12 max-w-md p-6 text-center">
-            <h2 class="text-2xl font-bold mb-4">Payment Confirmation</h2>
-            <p id="payment-status" class="mb-4"></p>
-            <button id="close-confirmation" class="bg-blue-500 text-white px-4 py-2 rounded">Close</button>
+    <div class="bg-white rounded-lg w-11/12 max-w-md p-6 text-center">
+        <h2 class="text-2xl font-bold mb-4">Payment Confirmation</h2>
+        <p id="payment-status" class="mb-4"></p>
+        <img src="payment.png" class="w-100 mx-auto mb-4" alt="Payment Successful" />
+        <div class="flex justify-center mb-4">
+            <a href="https://apps.apple.com/in/app/eduport-sslc-11-12-science/id6443499408" target="_blank" class="mr-4">
+                <img src="1.svg" alt="Download on the App Store" />
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.irah.eduportlms&hl=en_IN&gl=US&pli=1" target="_blank" class="mr-4">
+                <img src="2.svg" alt="Download on the App Store" />
+            </a>
+            <a href="https://web.eduport.app/" target="_blank">
+                <img src="3.svg" alt="Only For Desktop Access On Web" />
+            </a>
         </div>
+        <button id="close-confirmation" class="bg-blue-500 text-white px-4 py-2 rounded">Close</button>
     </div>
+</div>
 
     <script>
         const API_URL = 'https://raw.githubusercontent.com/eduport-tech/course-purchase/refs/heads/main/data/res.json';
