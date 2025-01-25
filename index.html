@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <style>
         .brochure-card {
             transition: all 0.3s ease;
@@ -164,7 +165,6 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 allCourses = data.results;
-                console.log(allCourses);
                 renderCourses(allCourses);
                 createGradeTabs(allCourses);
             } catch (error) {
@@ -212,22 +212,30 @@
                 const thumbnailUrl = fileId ? getGoogleDriveThumbnail(fileId) : null;
 
                 const originalPrice = parseInt(course['Batch Amount']);
-                const discountedPrice = Math.floor(originalPrice / 2);
+                const discountedPrice = originalPrice > 0 ? Math.floor(originalPrice / 2) : 0;
 
                 return `
                 <div class="brochure-card bg-white rounded-xl overflow-hidden shadow-lg animate-slide-in" style="animation-delay: ${index * 100}ms">
-                    <div class="h-48 overflow-hidden">
-                        <img src="${thumbnailUrl || course['Course Image']}" alt="${course['Course Name']}" class="w-full h-full object-cover">
+                    <div class="h-56 w-full overflow-hidden">
+                        <img 
+                            src="${thumbnailUrl || course['Course Image']}" 
+                            alt="${course['Course Name']}" 
+                            class="w-full object-contain" 
+                        >
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">${course['Course Name']}</h3>
 <span class="bg-blue-100 mr-2 my-2 text-blue-800 text-xs px-2 py-1 rounded-full">Batch: ${course['Batch ID']} </span>
-<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Grade ${course.Grade.toUpperCase()}</span>
+<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Grade ${course.Grade}</span>
 <!--
-<p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']} | Grade: ${course.Grade.toUpperCase()}</p>-->
+<p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']} | Grade: ${course.Grade}</p>-->
                         <div class="flex items-center mb-4">
+                            ${originalPrice > 0 ? `
                             <p class="text-sm text-gray-500 line-through mr-3">₹${originalPrice}</p>
                             <p class="text-lg font-bold text-green-600">₹${discountedPrice}</p>
+                            ` : `
+                            <p class="text-lg font-bold text-green-600">FREE</p>
+                            `}
                         </div>
                         <button onclick="openPurchaseModal(${course['Batch ID']}, ${discountedPrice})"
                                 class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-center transition-colors duration-200">
@@ -252,7 +260,11 @@
         function openPurchaseModal(courseId, courseAmount) {
             document.getElementById('selected-course-id').value = courseId;
             document.getElementById('selected-course-amount').value = courseAmount;
-            document.getElementById('purchase-modal').classList.remove('hidden');
+            if (courseAmount > 0) {
+                document.getElementById('purchase-modal').classList.remove('hidden');
+            } else {
+                document.getElementById('payment-confirmation').classList.remove('hidden');
+            }
         }
 
         function closePurchaseModal() {
@@ -359,7 +371,6 @@
 
                 // Add success animation
                 animationContainer.innerHTML = `
-                    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
                     <lottie-player
                         src="assets/success_lottie.json"
                         background="transparent"
@@ -375,7 +386,6 @@
 
                 // Add failure animation
                 animationContainer.innerHTML = `
-                    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
                     <lottie-player
                         src="assets/fail_lottie.json"
                         background="transparent"
@@ -393,6 +403,12 @@
         }
 
         fetchCourses();
+        
+        // Close confirmation modal button handler
+        document.getElementById('close-confirmation').onclick = () => {
+            document.getElementById('payment-confirmation').classList.add('hidden');
+        };
+        
         window.onclick = function(event) {
             if (event.target === document.getElementById('purchase-modal')) {
                 document.getElementById('purchase-modal').classList.add('hidden');
