@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Purchase Platform</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -36,13 +36,27 @@
             background-color: #3B82F6;
             color: white;
         }
+
+        .custom-orange-btn {
+            border: 2px solid #f97316; /* Orange color */
+            color: #f97316; /* Orange text */
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px; /* Fully rounded */
+            background-color: transparent;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        .custom-orange-btn:hover {
+            background-color: #ffedd5; /* Light orange */
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <header class="bg-white shadow-md">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center">
-                <img src="image.png" alt="Company Logo" class="h-10 mr-4">
+                <img src="assets/image.png" alt="Company Logo" class="h-10 mr-4">
                 <h1 class="text-xl font-bold text-gray-800 hidden md:block">Course Platform</h1>
             </div>
             <div class="text-gray-700 font-medium">
@@ -102,23 +116,38 @@
         </div>
     </div>
 
-    <div id="payment-confirmation" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg w-11/12 max-w-md p-6 text-center">
-        <h2 class="text-2xl font-bold mb-4">Payment Confirmation</h2>
+    <div id="payment-confirmation" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg w-11/12 max-w-md p-6 text-center">
+        
+        <!-- Animation container -->
+        <div id="animation-container" class="mb-4"></div>
+    
+        <!-- Status text -->
+        <p id="payment-status"></p>
+    
         <p id="payment-status" class="mb-4"></p>
-        <img src="payment.jpg" class="w-100 mx-auto mb-4" alt="Payment Successful" />
+
+        <div class="mb-6">
+            <img src="assets/freedom.png" class="w-48 mx-auto" alt="QR Code" />
+        </div>
+        
+        <!-- QR Code -->
+        <div class="mb-6">
+            <img src="assets/download_qr.png" class="w-96 mx-auto" alt="QR Code" />
+        </div>
+
         <div class="flex justify-center mb-4">
             <a href="https://apps.apple.com/in/app/eduport-sslc-11-12-science/id6443499408" target="_blank" class="mr-4">
-                <img src="1.svg" alt="Download on the App Store" />
+                <img src="assets/app_store.svg" alt="Download on the App Store" />
             </a>
             <a href="https://play.google.com/store/apps/details?id=com.irah.eduportlms&hl=en_IN&gl=US&pli=1" target="_blank" class="mr-4">
-                <img src="2.svg" alt="Download on the App Store" />
+                <img src="assets/play_store.svg" alt="Download on the App Store" />
             </a>
             <a href="https://web.eduport.app/" target="_blank">
-                <img src="3.svg" alt="Only For Desktop Access On Web" />
+                <img src="assets/web.svg" alt="Only For Desktop Access On Web" />
             </a>
         </div>
-        <button id="close-confirmation" class="bg-blue-500 text-white px-4 py-2 rounded">Close</button>
+        <button id="close-confirmation" class="custom-orange-btn">Close</button>
     </div>
 </div>
 
@@ -313,11 +342,50 @@
         function showPaymentConfirmation(success, paymentId) {
             const confirmationModal = document.getElementById('payment-confirmation');
             const statusText = document.getElementById('payment-status');
+            const animationContainer = document.getElementById('animation-container');
 
             confirmationModal.classList.remove('hidden');
-            statusText.textContent = success
-                ? `Payment Successful! Payment ID: ${paymentId}`
-                : 'Payment Failed. Please try again.';
+
+            // Reset the content of the animation container
+            animationContainer.innerHTML = ''; // Clear previous animation
+
+            // Reset any previous styles
+            statusText.className = 'text-2xl font-bold mb-6';
+
+            if (success) {
+                // Set success message and styles
+                statusText.textContent = 'Payment Successful!';
+                statusText.classList.add('text-green-500');
+
+                // Add success animation
+                animationContainer.innerHTML = `
+                    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                    <lottie-player
+                        src="assets/success_lottie.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 80px; height: 80px; margin: 0 auto;"
+                        autoplay>
+                    </lottie-player>
+                `;
+            } else {
+                // Set failure message and styles
+                statusText.textContent = 'Payment Failed!';
+                statusText.classList.add('text-red-500');
+
+                // Add failure animation
+                animationContainer.innerHTML = `
+                    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                    <lottie-player
+                        src="assets/fail_lottie.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 80px; height: 80px; margin: 0 auto;"
+                        autoplay>
+                    </lottie-player>
+                `;
+            }
+
 
             document.getElementById('close-confirmation').onclick = () => {
                 confirmationModal.classList.add('hidden');
