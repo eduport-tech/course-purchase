@@ -12,6 +12,8 @@
     <style>
         .brochure-card {
             transition: all 0.3s ease;
+            width: 300px;
+            height: 470px;
         }
         .brochure-card:hover {
             transform: translateY(-4px);
@@ -223,12 +225,13 @@
                             class="w-full object-contain" 
                         >
                     </div>
-                    <div class="p-6">
+                    <div class="flex flex-col justify-around p-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">${course['Course Name']}</h3>
-<span class="bg-blue-100 mr-2 my-2 text-blue-800 text-xs px-2 py-1 rounded-full">Batch: ${course['Batch ID']} </span>
-<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Grade ${course.Grade}</span>
-<!--
-<p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']} | Grade: ${course.Grade}</p>-->
+                        <div class="mb-2">
+                            <span class="bg-blue-100 mr-2 my-2 text-blue-800 text-xs px-2 py-1 rounded-full">Batch: ${course['Batch ID']} </span>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Grade ${course.Grade}</span>
+                            <!-- <p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']} | Grade: ${course.Grade}</p>-->
+                        </div>
                         <div class="flex items-center mb-4">
                             ${originalPrice > 0 ? `
                             <p class="text-sm text-gray-500 line-through mr-3">₹${originalPrice}</p>
