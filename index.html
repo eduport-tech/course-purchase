@@ -86,6 +86,145 @@
         .custom-orange-btn:hover {
             background-color: #ffedd5; /* Light orange */
         }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+                
+        .toast {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Align text and flag properly */
+            padding: 20px;
+            max-width: 350px; /* Adjust width to accommodate longer text */
+            background: #2e2e2e;
+            color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toast::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 10px;
+            padding: 3px;
+            background: linear-gradient(90deg, #ff9e0f, #00ff84, #0084ff);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            z-index: -1;
+        }
+        
+        .flag {
+            display: flex;
+            flex-direction: column;
+            width: 60px;
+            height: 40px;
+            margin-right: 15px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .saffron {
+            background: #ff9933;
+            height: 33%;
+        }
+        
+        .white {
+            background: #ffffff;
+            height: 33%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .ashoka-chakra {
+            width: 10px; /* Wheel size */
+            height: 10px;
+            border: 1px solid #000088;
+            border-radius: 50%;
+            background: transparent;
+            position: relative;
+        }
+        
+        .ashoka-chakra::before,
+        .ashoka-chakra::after {
+            content: '';
+            position: absolute;
+            width: 1px; /* Spoke thickness */
+            height: 50%; /* Spoke length */
+            background: #000088;
+            top: 0;
+            left: 50%;
+            transform-origin: bottom;
+            transform: translateX(-50%);
+        }
+        
+        /* Add 4 additional spokes */
+        .ashoka-chakra .spoke {
+            position: absolute;
+            width: 1px; /* Spoke thickness */
+            height: 50%; /* Spoke length */
+            background: #000088;
+            top: 0;
+            left: 50%;
+            transform-origin: bottom;
+        }
+        
+        /* Rotations for the spokes */
+        .ashoka-chakra .spoke:nth-child(1) { transform: translateX(-50%) rotate(0deg); }
+        .ashoka-chakra .spoke:nth-child(2) { transform: translateX(-50%) rotate(60deg); }
+        .ashoka-chakra .spoke:nth-child(3) { transform: translateX(-50%) rotate(120deg); }
+        .ashoka-chakra .spoke:nth-child(4) { transform: translateX(-50%) rotate(180deg); }
+        .ashoka-chakra .spoke:nth-child(5) { transform: translateX(-50%) rotate(240deg); }
+        .ashoka-chakra .spoke:nth-child(6) { transform: translateX(-50%) rotate(300deg); }
+        
+        .green {
+            background: #138808;
+            height: 33%;
+        }
+        
+        .message {
+            font-size: 18px;
+            font-weight: bold;
+            word-wrap: break-word; /* Allow breaking long words */
+            overflow: hidden;      /* Prevent overflow issues */
+            max-width: 200px;      /* Set a maximum width for better readability */
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background-color: #007bff;
+            width: 100%;
+            animation: progressBar 5s linear;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -112,6 +251,27 @@
             <h2 class="text-3xl font-bold text-gray-800 mb-4">Available Courses</h2>
             <p class="text-gray-600">Explore and purchase our courses</p>
         </header>
+
+        <div id="toast-container" class="toast-container hidden">
+            <div class="toast">
+                <div class="flag">
+                    <div class="saffron"></div>
+                    <div class="white">
+                        <div class="ashoka-chakra">
+                            <div class="spoke"></div>
+                            <div class="spoke"></div>
+                            <div class="spoke"></div>
+                            <div class="spoke"></div>
+                            <div class="spoke"></div>
+                            <div class="spoke"></div>
+                        </div>
+                    </div>
+                    <div class="green"></div>
+                </div>
+                <div class="message"></div>
+                <div class="toast-progress"></div>
+            </div>
+        </div>
 
         <div id="grade-tabs" class="flex justify-start space-x-4 mb-8 overflow-x-auto">
             <button onclick="filterCoursesByGrade('all')" class="grade-tab px-4 py-2 bg-blue-500 text-white rounded-lg active" data-grade="all">
@@ -202,6 +362,9 @@
                 allCourses = data.results;
                 renderCourses(allCourses);
                 createGradeTabs(allCourses);
+
+                // Start toast notifications after courses are loaded
+                setInterval(showToast, 8000);
             } catch (error) {
                 console.error('Error fetching courses:', error);
                 document.getElementById('courses-container').innerHTML =
@@ -458,6 +621,72 @@
                 confirmationModal.classList.add('hidden');
             };
         }
+
+        function splitMessage(message, maxLength) {
+            let result = [];
+            while (message.length > maxLength) {
+                let breakPoint = message.lastIndexOf(" ", maxLength);
+                if (breakPoint === -1) breakPoint = maxLength;
+                result.push(message.substring(0, breakPoint));
+                message = message.substring(breakPoint).trim();
+            }
+            result.push(message);
+            return result.join("<br>"); 
+        }
+
+        let isToastVisible = false; // Track toast visibility to prevent message change during display
+
+        function showToast() {
+            
+            var names = ['Navya A', 'aparna. a', 'Midhila M Remesh', 'Twdz', 'MUHAMMAD DILSHAD M', 'aysha mehrin', 'Shehinsha.T', 'Fathima jumna tk', 'Abhirami VA', 'mishaal musthafa', 'Munavvir vk', 'sandra c c', 'Muhammed Sahal.K', 'libiya mil mathew', 'SAHLA', 'Rajeena PT Shoukath', 'muhd thanseeh', 'anamika. r', 'Binsha Sherin', 'Aslam TM', 'Diyana hassan c', 'emil s thomas', 'stefin sanoj', 'mudhasir', 'Velu.k', 'MUHAMMED MEHAFIL K', 'riya mariyam', 'riya parveen', 'i am__good girl', 'Ashlin Joseph', 'Nithun KN', 'Gokul Babu', 'Naseeba.v', 'pavithra Hari', 'Muhammad suhail A', 'ALLEN ANTONY', 'Shikha A S', 'muhammed najih. k', 'Emmanuvel Joseph benny', 'Thaejes Sinto', 'blaze s', 'Adithya AA', 'anurang ac', 'sajid m. s', 'Nasla Illabi', 'sana nazar', 'Merin Annie Thomas', 'simi 6', 'Ajmal Satheesh', 'ꜱʀᴇᴇʜᴀʀɪ ᴋᴍ', 'Muhammed shefin m.k', 'Gayathry', 'NANDANA SIVAPRASAD', 'Rayza Fathima ', '𝙪𝙯𝙖𝙞𝙧', 'Abdulla murthala ', 'sanjana TS', 'SALIM FARHAN', 'Nehala fathima', 'akshay vp', 'musaina thasni tp', 'Archana vineshan', 'Don Vincent', 'MOHAMMED NASRULLA ', 'Shazin Muhammed nk ', 'SREERAG T', 'Mohammed Faseen TP', 'Johan T John', 'sandra Krishnakumar ', 'Mishal K', 'Nivedya Krishna I R', 'Alok AKA akku', 'NISAMUDHEEN M.S', 'Angel Rose Sony', 'ARFIN BASHEER', 'farhan ummer cheranthodika', 'Hayagrevv nair', 'sandriya ', 'JERLIN JOSEPH', 'Diya Fathima YS', 'Shamil Rp', 'Archana. Vijayakumar', '𝗡𝗔𝗗𝗜𝗟 𝗥𝗔𝗬𝗔𝗡', 'nishil', 'vismaya.P', 'abhirami j', 'Sivanth E N', 'AJMAL SHAHAD-C', 'Rahda', 'shoukath', 'ABDUL RAHOOF. K', 'Samiya sinu', 'NAVANEETH.M.SAJU', 'Shahanas K. A', 'vysakh. H', 'Hrithika Rajesh mk', 'sappu...🤍', 'Amaya. N', 'Muhammed Alfas N', 'rudra. k', 'Muhammed Najah p', 'Aseel sherif', 'melsa Mariam kochumon', 'Aswan A', 'Fathima anshida', 'sangeeth gs', 'Rithul Acm', 'Archana. M. B', 'Fida. tk', 'Abdulla Hashim ', 'arinjooda', 'Sreekanth Sreekumar', 'devanjali M', 'Mohammed Nihal p', 'fathima rinsha tk', 'Bhagyalakshmi Sajeev', 'kansul hidayath', 'Rhaja fathima', 'zidin', 'Rubeena', 'Athulya Peethambaran', 'sayedmuhammedshanu. A', 'Nikhila Chikku', 'muhmd nashif', 'SHEBIN KURIAN', 'zaara', 'Adwaith. T', 'Labeeba Loolu', 'Fathimathul Aslaha', 'Fathima thasniya. n. p', 'Abai', 'Ardhra. k', 'Neelanjana K. N', 'Dajin Zayan', 'Don Joby', 'Gouri ', 'Alphonsa Aji', 'M.S Bravish Panicker', 'Arunima o. s', 'Anunandha A', 'Seema Lohar', 'bygjj', 'Abhinand v', 'Geethu. p', 'Mehaja', 'Amir Hasan', 'Athul krishna Ps', 'mukesh', 'juhaina jinu', 'Sooryajith Mahesh', 'Riya prekash', 'Ashwathi Elisabath', 'Fahmida vk', 'rjduei', 'krupa jose', 'Harish Harish', 'Fairooza', 'Arya. s', 'Mohammed Raseen kp', 'karna', 'Arya Ranjith', 'Fathima Nifa', 'Pranava PG', 'Alfred Vincent', 'muhammed Shaheem kv', 'Arunoday', 'Fathima Nishwa k.p', 'luthfa latheef', 'yosha', 'Rishad Kkv', 'Anshif Anshif', 'Gopika Gopuuzz', 'farshid', 'Kevin tom saji', 'Adisha', 'Mishal Cp', 'Manavv Vv', 'Neeraja Raveendran', 'Jilson Joseph', 'Anurag.M', 'fasila sidhik', 'Nandhana BR', 'Sarah A S', 'Rilwana. M', 'Karthik Jyothi', 'Anjana. s. m', 'Adel Maliyekkal', 'Ajay.p.rajesh', 'athul murali', 'Sabah', 'Rashida. kt', 'vishnu p s', 'prarthana.E', 'Syed Athikarath', 'akhil. a k', 'Harel Antony Olivero ', 'Hasna A', 'Bilal!! ikkaa', 'mohammed radhin KP', 'Anzila mol k.p', 'Remyajustin Justin', 'Nahla kk', 'Alameen Rahim', 'Sanulal K', 'miza fathima p. m', 'Fathima p p', 'sivani vinod', 'shemeera', 'Jiya Merin Jiji', 'Harikrishna  KB', 'bujqit', 'dilna khadeeja', 'suresh Valappil', 'fidha Fathima TP', 'Athul sankar. u', 'nafsil', 'Abel Xavier', 'Niya Rachel', 'FATHIMA DHIYANA', 'Padmashankar', 'Aloysious Sunny', 'reja fathima vm', 'VishnuDev', 'Swaliha Cs', 'nahina sahirana', 'riya fathima A', 'yazna', 'T B Abhishek', 'Yathil Bhandary', '814718', 'JOE PRAKASH', 'Rejo George', 'Amrutha-A', 'Aysha hamdha', 'Arjun.v', 'adish pk', 'Mohammed Rehaan', 'vishnu devan', 'Veena. S', 'Pranav E.S', 'Lakshmi Abhilash', 'Tejin CT ', 'Ashifa sherin', 'Muhammed Javad', 'sreerag dileep', 'f. salha ck', 'Sanketh VS', 'Sulthana  Fathima', 'Sreekala Sreejith', 'Mohammed shahil', 'Prarthana PG', 'Aiswarya.m', 'CHRISTO  THOMAS', 'fat', 'alna mohammed', 'Shifna Sherin C ', 'Fathimathu Ragda. m', 'Hyra Shafeeq', 'sanvi.r', 'shiby', 'Ayisha febin N.K', 'NIMISHA M 10A', 'P. S. Mohammed bilal ', 'Fathima Risli. M', 'Anima', 'Drishya Ammu', 'Athira Ramesh', 'rithika santhosh', 'BIJU D', 'Aneena KA', 'Sumayya sherin Ms', 'Sithara jebin mk', 'Ahal k.c', 'Siji Lukose', 'Varsha Chandrasekharan ', 'AHAMMED YAZEEN', 'Famiya F B', 'Hemaradha', 'Lisha Ram', 'Ann Maria Cherian', 'SREYA.P', 'Anas Hameed. M', 'Salim Abdul Rahiman', 'devanandana', 'ARJUN UP', 'velady', 'MHD RIFAD', 'Nayana Suresh ', 'Rasin', 'Ajinas Muhammed p', 'RAJITHA SANTHOSH', 'suhana kadher', 'md rumman alam', 'SATHEESH T', 'Fathima shaja. c', 'Sariga S', 'Muhammad uvaise', 'Sachu. T', 'Jithin Raj', 'fathima Muhammad Ali', 'JISHNU C', 'AnWiN George', 'Muhammad rizvan', 'Nila C B', 'FAYAS MUHAMMED', 'Muhammed shezil .T', 'Nihara Manoj K', 'Ayshath amna', 'farhan. pk', 'Abisha.M', 'Fathima.M.K', 'Aslam Vtr', 'sudharsan', 'Rena ayisha ', 'Diya shajeev', 'Siva Siva', 'Anita thomas', 'Haran dev. m', 'yo', 'Anjana Vinod', 'raeesa', 'FIDHA RUSHDA', 'sheza fasal', 'Musnad M', 'Fathima shifana pp', 'Sajim', 'Godwin  m. j', 'nazvin', 'Dhinya', 'Fathimma hiba. v', 'Bindhu Appukuttan', 'silna ks', 'Nihma ', 'Anupriya Anu', 'Ashik Babu', 'Dilshna', 'MUHAMMED RAMEES .K', 'Omana Sudhakaran', 'Niya Jithesh', 'Rayon Reji', 'Sheeja Prabha', 'fathima mufeedha.c', 'Ali Rasal', 'Fathima MM', 'Muhammed Rameez tk', 'lordson tomy', 'Theertha suresh', 'Fathima Shimya.k', 'shifna febin', 'Abani  Aakash', 'Athira anil', 'abinsha rafi', 'സുഫൈൽ.ot', 'RAKHIL NATH R', 'Liz k Abraham ', 'Veena U Nair', 'Akshay mv', 'Midhuna.K.M', 'Jalwa cp', 'Ashi ziya', 'fidha🦋', 'Pranav-k', 'Abdul nasar p.d', 'AKSHAY. S. NAIR', 'Muhammed Rishal c v', 'luke antony', 'sanjana Sunil', 'Ashikna Tirza', 'Misbaah Mubarak', '𝚊𝚓𝚒𝚜𝚑𝚊 𝙼. 𝚁', 'Anandu. R', 'abhijith om', 'Arjun Nair', 'shadiya sherin kp', 'Aryamol. k', 'GokulDas bs', 'Mohammed Haris', 'Sresa', 'avanthika ajith', 'Abhina kv', 'Ajiii', 'Ranganna', 'Navya vijayan.v', 'Arjun T. A', 'Alfiya abdul kareem', 'thajunnisa shameer', 'Muhammad nihal kavungal', 'sahalvp8', 'Dana Maria John', 'Anviyo Binoy', 'rasla', 'HAMTHA SHANAVAS', 'Mohammed safnad k', 'basheer p', 'Muhammed.k', 'Muhammad Sinan. m', 'Rini Kiran', 'Sana Sinnu', 'Haifa sharin m.t', 'Sree Chandana', 'Adil CP', 'Princy Thomas', 'Ratheesh Rameesh', 'shammas sayyid', 'Fathima Ashraf Aboobacker', 'muhammed midhaq ', 'Sabith Mc', 'Ashadinarajan Dinarajan', 'Aparna Ajay', 'vishnupradeep', 'Amritha ', 'Musthafa Pallikkal', 'Nandana MT', 'helna devasya', 'nafla m', 'Nima R', 'Alsiya.M.S', 'jeswin james', 'Farhana M A', 'shahana. M', 'Ayush Praveen op', 'fathima fidha T', 'Meera Kareem', 'Lekshmi.S', 'Anit mariya Benny', 'Jilna Johnson ', 'RADIL K', 'zakiya abdul ', 'Muhammed razi', 'fathimath swaliha', 'Binu Bahir', 'Fathima Rinsha.C', 'Keerthi.R', 'Alkka Mohanan ', 'Catherine George', 'Ananthika kishor', 'Ajith E. V', 'Muhammed shafi .m', 'Nandana. K.R', 'kishore. B', 'hisana sherin', 'Naval Krishna', 'Prajval Krishna.P.M', 'Abu Rayyan', 'gowri p ajish', 'Anamika. c', 'vachas', 'raiha', 'Shameema Jamsheer', 'Abhi S H', 'Muhammad irshad', 'Sajad A', 'Jona Joy', 'Anjana Rajesh ', 'Nivedya Raveendran', 'jinto', 'Muhammed Musthafa.k', 'Anakha C', 'ARUN M S', 'sreya m s', 'MUBASHIRA', 'SREEHARI.S 10D', 'Rithunand S B', 'Rahma', 'Mohammed Irshad ck', 'Nandana Dinesh', 'feba', 'Parvathi sreekumar', 'ADITHYÁÑ', 'vishnuja J.S', 'muhammed rafi m', 'Muhammed Adil N', 'mohammed mishab', 'sachu joy', 'nehre', 'Maneesh k.s', 'Abdul  Fattah', 'Riza fathima k.k', 'sanusha. j', 'nikki🍃', 'יאמן', 'Jithu Vk', 'Sulekha Kl', 'Ardra Pp', 'fathimarida', 'haya Fathima kp', 'Joseph K Babu', 'Mohammed Abdul hadi', 'Agra G Adiya', 'Chandra Rajesh M', 'Nayan Krishna T.K', 'salsan s m', 'prabha', 'Aierin', 'HAROON MUHAMMED N', 'shaba kp', 'Diya farook', 'Raja fathima pp', 'Daksh s anil', 'sanjay. k', 'Anurag pk', 'MUHAMMED HASHIR K', 'Malik Fff', 'Ithal  K Prakashan', 'Sanal Bhaskaran', 'shone shaju', 'Anamika Jayakumar', 'Ashfaq kv', 'sreenu vinayak', 'Archana v', 'AMINA S', 'nidhi usman', 'Fathimath Naja k', 'Fathima Hanna KV', 'Jinshad P Mohmd', 'Amjad  Roshan', 'Vishnu Sasikumar', 'vishnunath ER', 'Vinay Gupta', 'Siya Anna Sam', 'Ramitha T P', 'seena muhammed', 'Afsana MK', 'aneesa mol', 'Muhammed sabith k', 'Jilsa  Varkey', 'Ahammed Anshed.n', 'Alan santhosh', 'Jaseera Siraj', 'Basil Samuel Reji', 'Ansha mol', 'REEHAN', 'sumayya Hassain', 'Ahammed Shibin.P', 'Farhan. M', 'Dilna CH', 'Rajashree P', 'fathima nesrin', 'shehabin shihab p', 'Muhammed rameesh', 'Charuzz Charu', 'shefeekka fasna', 'Afla Nowf M.E', 'KEERTHANA S SAIJU', 'Ayishath Nahda', 'Prithijith.k', 'fidha mehrin', 'hasif muhammed', 'muhammed Thasneem', 'sidharth. k', 'Nissy Sera Skaria', 'Anson siby ', 'safna kv', 'Mohammed liban', 'Fidhanasrin', 'benedii', 'Diya. R', 'maleeha Fathima ', 'Yadhukul sumesh', 'AKHIL M M', 'Parthiv M N', 'Risana. s', 'vipinand kv', 'alencheriyan', 'Nithin S V', 'Bhamana Benny', 'yadhu krishna.A', 'Aswiny v', 'Shivajith.A', 'Archa I s', 'GOWRI NANDA MANOJ MANOJ', 'Bensira tp', 'Anand', 'Kesiya', 'GOURIKRISHNA P D', 'aravind vinod', 'dani Joseph', 'Ayush jikson', 'Fathima Ridha M', 'Adhikrishnan c.s', 'Gissna Mathew', 'Ahammed suhail. s', 'Rinsha jebin k', 'Nandana  T. P', 'MOHAMMED RAJAS', 'HASHFAKH', 'RISHWA', 'Anukrishnan', 'Sheeba Sreekumar', 'Rajithra', 'Manasir M', 'Vinayachandran KA', 'shifna. m', 'Dhanurved mb', 'DEVASURYA. S', 'Nisana Nasrin PM', 'Sharmila K', 'Sona Shaji', 'naja nasri', 'GXD MARTIN gaming', 'Tania fathima', 'Sahadiya ', 'Sreerag.k', 'Bala murali', 'vishnu ms', 'AbelMathew', 'Devanjana Dileep', 'ARJUN MR', 'adnan kalathil', 'Fathima shahaba cs', 'Mohammed Rashed', 'Dhanush K Prasad', 'Jishnu C', 'krishna priya TS', 'PRO GAMING', 'srishna', 'Nooh Usman']
+            var allCourses = ["Class 4","Class 5","Class 6","Class 7","Class 7 Booster","Class 7 Foundation","Class 7 CBSE","USS Shakti","LSS Bhoom","Class 8","Class 8 Booster","Class 8 CBSE","Class 8 Foundation","Class 9","Class 9 Booster","Class 9 CBSE","Class 9 Foundation","SSLC Foundation","SSLC Booster","Class 10 CBSE","Plus One Sci Booster","Plus Two Sci Booster","Plus One Com Booster","Plus Two Com Booster","Plus One Hum Booster","Plus Two Hum Booster","Plus One JEE","Plus One NEET","Plus Two NEET","Plus Two JEE","JEE Repeater","NEET Repeater","NEET Test Series","Plus Two Com CUET","Plus Two Hum CUET","Plus Two Sci CUET"]
+
+            if (isToastVisible) return; // Prevent showing a new toast while one is already visible
+            isToastVisible = true;
+
+            const toastContainer = document.getElementById('toast-container');
+            toastContainer.style.display = 'flex';
+
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            const randomCount = Math.floor(Math.random() * (2355)) + 202;
+            const courseName = allCourses[Math.floor(Math.random() * allCourses.length)];
+
+            let message = `${randomName} and ${randomCount} others bought ${courseName} course in the last 24 hours...`;
+            let formattedMessage = splitMessage(message, 40);
+
+            const messageDiv = document.querySelector("#toast-container .toast .message");
+            messageDiv.innerHTML = formattedMessage;
+
+            const toast = document.querySelector("#toast-container .toast");
+            const progressBar = document.querySelector("#toast-container .toast .toast-progress");
+
+            // Reset the progress bar
+            progressBar.style.animation = "none";
+            setTimeout(() => {
+                progressBar.style.animation = "progressBar 5s linear";
+            }, 10);
+
+            // Add fade-out animation to the toast
+            toast.style.animation = "slideIn 0.5s ease, fadeOut 0.5s ease 5s";
+
+            // Restart the toast after a 10-second delay
+            toast.addEventListener('animationend', function (e) {
+                if (e.animationName === 'fadeOut') {
+                    toast.style.animation = ""; // Reset animation styles
+                    progressBar.style.animation = "none"; // Reset progress bar animation
+
+                    // Hide the toast for the delay period
+                    toastContainer.style.display = 'none';
+                    isToastVisible = false; // Allow new toast to be shown
+
+                    // Show the next toast after a 10-second delay
+                    setTimeout(() => {
+                        showToast(); // Restart the toast process
+                    }, 10000); // 10 seconds delay
+                }
+            });
+        }
+
 
         fetchCourses();
         
