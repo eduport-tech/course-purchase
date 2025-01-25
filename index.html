@@ -26,6 +26,39 @@
             from { transform: translateY(-10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+        .grade-tabs-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .grade-tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        .grade-tab {
+            flex-shrink: 0;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .grade-tab.active {
+            background-color: #3B82F6;
+            color: white;
+        }
+        .grade-tab:not(.active) {
+            background-color: #E5E7EB;
+            color: #4B5563;
+        }
+        .grade-tab:hover:not(.active) {
+            background-color: #F3F4F6;
+        }
         .animate-slide-in {
             animation: slideIn 0.3s ease forwards;
         }
@@ -80,13 +113,13 @@
             <p class="text-gray-600">Explore and purchase our courses</p>
         </header>
 
-        <div id="grade-tabs" class="flex justify-center space-x-4 mb-8">
+        <div id="grade-tabs" class="flex justify-start space-x-4 mb-8 overflow-x-auto">
             <button onclick="filterCoursesByGrade('all')" class="grade-tab px-4 py-2 bg-blue-500 text-white rounded-lg active" data-grade="all">
                 All
             </button>
         </div>
 
-        <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center justify-center">
             <div class="col-span-full text-center py-8">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 <p class="mt-4 text-gray-600">Loading courses...</p>
@@ -178,15 +211,36 @@
 
         function createGradeTabs(courses) {
             const gradeTabs = document.getElementById('grade-tabs');
-            const uniqueGrades = [...new Set(courses.map(course => course.Grade))];
-
-            uniqueGrades.forEach(grade => {
-                const button = document.createElement('button');
-                button.textContent = `${grade}`.toUpperCase();
-                button.classList.add('grade-tab', 'px-4', 'py-2', 'bg-gray-200', 'rounded-lg');
-                button.setAttribute('data-grade', grade);
-                button.onclick = () => filterCoursesByGrade(grade);
-                gradeTabs.appendChild(button);
+            gradeTabs.classList.add('grade-tabs-container');
+            
+            // Get unique grades
+            const uniqueGrades = ['all', ...new Set(courses.map(course => course.Grade))];
+            
+            // Create tabs dynamically
+            const gradesHTML = uniqueGrades.map(grade => `
+                <button 
+                    onclick="filterCoursesByGrade('${grade}')" 
+                    class="grade-tab ${grade === 'all' ? 'active' : ''}" 
+                    data-grade="${grade}"
+                >
+                    ${grade === 'all' ? 'All' : grade}
+                </button>
+            `).join('');
+            
+            gradeTabs.innerHTML = gradesHTML;
+            
+            // Add click event listener to handle tab activation
+            gradeTabs.addEventListener('click', function(event) {
+                const clickedTab = event.target.closest('.grade-tab');
+                if (clickedTab) {
+                    // Remove active class from all tabs
+                    this.querySelectorAll('.grade-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked tab
+                    clickedTab.classList.add('active');
+                }
             });
         }
 
