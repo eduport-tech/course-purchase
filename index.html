@@ -351,6 +351,23 @@
         const API_URL = 'https://raw.githubusercontent.com/eduport-tech/course-purchase/refs/heads/main/data/res.json';
         let allCourses = [];
 
+        // Add device detection function
+        function detectDevice() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            } else if (/iphone|ipad|ipod/i.test(userAgent)) {
+                return 'ios';
+            }
+            return 'web';
+        }
+
+        // Add app store URLs
+        const APP_URLS = {
+            android: 'https://play.google.com/store/apps/details?id=com.irah.eduportlms&hl=en_IN&gl=US&pli=1',
+            ios: 'https://apps.apple.com/in/app/eduport-sslc-11-12-science/id6443499408'
+        };
+
         function getGoogleDriveThumbnail(fileId) {
             return `https://lh3.googleusercontent.com/d/${fileId}=w400-h300-p-k-nu`;
         }
@@ -426,12 +443,37 @@
 
         function renderCourses(courses) {
             const coursesContainer = document.getElementById('courses-container');
+            const device = detectDevice();
+            
             coursesContainer.innerHTML = courses.map((course, index) => {
                 const fileId = course['Course Image'].match(/\/d\/(.*?)\/view/)?.[1];
                 const thumbnailUrl = fileId ? getGoogleDriveThumbnail(fileId) : null;
 
                 const originalPrice = parseInt(course['Batch Amount']);
                 const discountedPrice = originalPrice > 0 ? Math.floor(originalPrice / 2) : 0;
+                
+                const isFree = originalPrice === 0;
+                let buttonHtml = '';
+                
+                if (isFree) {
+                    if (device === 'web') {
+                        buttonHtml = `<button onclick="openPurchaseModal('${course['Batch ID']}', 0)" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                            Download App
+                        </button>`;
+                    } else {
+                        const appUrl = APP_URLS[device];
+                        buttonHtml = `<a href="${appUrl}" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center block">
+                            Download App
+                        </a>`;
+                    }
+                } else {
+                    buttonHtml = `<button onclick="openPurchaseModal('${course['Batch ID']}', ${discountedPrice})" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        Purchase Now
+                    </button>`;
+                }
 
                 return `
                 <div class="brochure-card bg-white rounded-xl overflow-hidden shadow-lg animate-slide-in" style="animation-delay: ${index * 100}ms">
@@ -447,24 +489,19 @@
                         <div class="mb-2">
                             <span class="bg-blue-100 mr-2 my-2 text-blue-800 text-xs px-2 py-1 rounded-full">Batch: ${course['Batch ID']} </span>
                             <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Grade ${course.Grade}</span>
-                            <!-- <p class="text-gray-500 text-sm mb-4">Batch: ${course['Batch ID']} | Grade: ${course.Grade}</p>-->
                         </div>
                         <div class="flex items-center mb-4">
                             ${originalPrice > 0 ? `
                             <p class="text-sm text-gray-500 line-through mr-3">₹${originalPrice}</p>
                             <p class="text-lg font-bold text-green-600">₹${discountedPrice}</p>
                             ` : `
-                            <p class="text-lg font-bold text-green-600">FREE</p>
+                            <p class="text-lg font-bold text-green-600">Free</p>
                             `}
                         </div>
-                        <button onclick="openPurchaseModal(${course['Batch ID']}, ${discountedPrice})"
-                                class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-center transition-colors duration-200">
-                            Buy Now
-                        </button>
+                        ${buttonHtml}
                     </div>
-                </div>
-                `;
-            }).join('') || '<div class="col-span-full text-center text-gray-600">No courses found for this grade.</div>';
+                </div>`;
+            }).join('');
         }
 
         function validateEmail(email) {
