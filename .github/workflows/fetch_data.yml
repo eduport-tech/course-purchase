@@ -24,12 +24,16 @@ jobs:
           curl -L -s -o data/res.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec"
   
     - name: Commit and push changes if there are any
-
       run: |
         git config --global user.name 'github-actions'
         git config --global user.email 'github-actions@github.com'
+        
+        # Fetch latest changes and reset to origin
+        git fetch origin
+        git reset --hard origin/main
+        
         git add data/res.json
         git commit -m "Update Google Sheets data" || echo "No changes to commit"
-        git push || echo "Nothing to push"
+        git push origin HEAD:main || echo "Nothing to push"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
