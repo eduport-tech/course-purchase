@@ -249,17 +249,17 @@
     <header class="bg-white shadow-md">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center">
-                <img src="assets/image.png" alt="Company Logo" class="h-10 mr-4">
-                <h1 class="text-xl font-bold text-gray-800 hidden md:block">Course Platform</h1>
+                <img src="assets/image.png" alt="Eduport" class="h-10 mr-4">
+                    <h1 class="text-xl font-bold text-gray-800 hidden md:block">Course Platform</h1>
             </div>
             <div class="text-gray-700 font-medium">
                 <a href="tel:+917593822051" class="flex items-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3H8a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3L12 7 8 3"/>
-                    </svg>
-                    +91 92079 98855
-                </a>
+                        </svg>
+                        +91 92079 98855
+                    </a>
             </div>
         </div>
     </header>
@@ -370,6 +370,47 @@
         // const API_URL = 'data/res.json';
         let allCourses = [];
 
+        // Route handling
+        function handleRouting() {
+            // Get the hash from the URL (without the # symbol)
+            const hash = window.location.hash.substring(1);
+            
+            // Check for grade in hash
+            const gradeMatch = hash.match(/grade\/(\w+)/);
+            
+            if (gradeMatch && gradeMatch[1]) {
+                const grade = gradeMatch[1];
+                window.initialGrade = grade;
+                document.title = `Grade ${grade} Courses | Course Purchase Platform`;
+            } else {
+                window.initialGrade = 'all';
+                document.title = 'All Courses | Course Purchase Platform';
+            }
+        }
+
+        // Update URL without page reload
+        function updateURL(grade) {
+            // Update page title
+            if (grade === 'all') {
+                document.title = 'All Courses | Course Purchase Platform';
+                window.location.hash = '';
+            } else {
+                document.title = `Grade ${grade} Courses | Course Purchase Platform`;
+                window.location.hash = `grade/${grade}`;
+            }
+        }
+
+        // Handle browser hash changes
+        window.addEventListener('hashchange', function() {
+            handleRouting();
+            if (allCourses.length) {
+                filterCoursesByGrade(window.initialGrade);
+            }
+        });
+
+        // Initialize routing on page load
+        handleRouting();
+
         // Add device detection function
         function detectDevice() {
             const userAgent = navigator.userAgent.toLowerCase();
@@ -398,6 +439,11 @@
                 allCourses = data.results;
                 renderCourses(allCourses);
                 createGradeTabs(allCourses);
+                
+                // Apply initial grade filter if set by route
+                if (window.initialGrade && window.initialGrade !== 'all') {
+                    filterCoursesByGrade(window.initialGrade);
+                }
 
                 // Start toast notifications after courses are loaded
                 // setInterval(showToast, 60*1000);
@@ -419,7 +465,7 @@
             const gradesHTML = uniqueGrades.map(grade => `
                 <button 
                     onclick="filterCoursesByGrade('${grade}')" 
-                    class="grade-tab ${grade === 'all' ? 'active' : ''}" 
+                    class="grade-tab ${grade === window.initialGrade ? 'active' : ''}" 
                     data-grade="${grade}"
                 >
                     ${grade === 'all' ? 'All' : grade}
@@ -444,6 +490,7 @@
         }
 
         function filterCoursesByGrade(grade) {
+            // Update grade tabs
             const tabs = document.querySelectorAll('.grade-tab');
             tabs.forEach(tab => {
                 tab.classList.remove('active', 'bg-blue-500', 'text-white');
@@ -451,12 +498,26 @@
             });
 
             const selectedTab = document.querySelector(`[data-grade="${grade}"]`);
-            selectedTab.classList.add('active', 'bg-blue-500', 'text-white');
+            if (selectedTab) {
+                selectedTab.classList.add('active', 'bg-blue-500', 'text-white');
+            }
+
+            // Update navigation links appearance
+            document.querySelectorAll('[data-nav-grade]').forEach(link => {
+                if (link.getAttribute('data-nav-grade') === grade) {
+                    link.classList.add('bg-blue-500', 'text-white');
+                    link.classList.remove('hover:bg-gray-100', 'text-gray-800');
+                } else {
+                    link.classList.remove('bg-blue-500', 'text-white');
+                    link.classList.add('hover:bg-gray-100', 'text-gray-800');
+                }
+            });
 
             const filteredCourses = grade === 'all'
                 ? allCourses
                 : allCourses.filter(course => course.Grade === grade);
 
+            updateURL(grade);            
             renderCourses(filteredCourses);
         }
 
@@ -760,6 +821,13 @@
                 document.getElementById('payment-confirmation').classList.add('hidden');
             }
         }
+
+        // Toggle mobile menu
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const nav = document.getElementById('main-nav');
+            nav.classList.toggle('hidden');
+            nav.classList.toggle('md:block');
+        });
     </script>
 </body>
 </html>
