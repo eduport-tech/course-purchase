@@ -9,6 +9,23 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script>
+        if (window.location.hostname !== '127.0.0.1') {
+            // Dynamic script injection for production only
+            // console.log('Production');
+            const script = document.createElement('script');
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=G-W9ME8WWC9C';
+            script.async = true;
+            document.head.appendChild(script);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-W9ME8WWC9C');
+        } else {
+            console.log('Development');
+        }
+    </script>
     <style>
         .brochure-card {
             transition: all 0.3s ease;
@@ -60,7 +77,7 @@
             background-color: #F3F4F6;
         }
         .animate-slide-in {
-            animation: slideIn 0.3s ease forwards;
+            /* animation: slideIn 0.3s ease forwards; */
         }
         .error-input {
             border-color: red;
@@ -243,6 +260,38 @@
             from { width: 100%; }
             to { width: 0%; }
         }
+
+        /* Stream tabs styling */
+        #stream-tabs {
+            animation: fadeIn 0.3s ease-in-out;
+            margin-top: -4px; /* Move it slightly closer to the grade tabs */
+        }
+        #stream-tabs .grade-tab {
+            background-color: white;
+            font-size: 0.85rem; /* Slightly smaller font */
+            padding: 5px 12px; /* Slightly smaller padding */
+            line-height: 1.2;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        #stream-tabs .grade-tab.active {
+            background-color: #3B82F6;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        #stream-tabs .grade-tab:not(.active) {
+            background-color: #E5E7EB;
+            color: #4B5563;
+        }
+        #stream-tabs .grade-tab:hover:not(.active) {
+            background-color: #F3F4F6;
+        }
+        #stream-filters-container {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -291,10 +340,18 @@
             </div>
         </div>
 
-        <div id="grade-tabs" class="flex justify-start space-x-4 mb-8 overflow-x-auto">
+        <div id="grade-tabs" class="flex justify-start space-x-4 mb-2 overflow-x-auto">
             <button onclick="filterCoursesByGrade('all')" class="grade-tab px-4 py-2 bg-blue-500 text-white rounded-lg active" data-grade="all">
                 All
             </button>
+        </div>
+
+        <!-- Stream filter tabs - Initially hidden -->
+        <div id="stream-filters-container" class="hidden">
+            <div class="text-xs text-gray-500 mb-1 ml-1">Filter by stream/medium:</div>
+            <div id="stream-tabs" class="flex justify-start space-x-3 mb-6 overflow-x-auto">
+                <!-- Stream tabs will be dynamically populated based on selected grade -->
+            </div>
         </div>
 
         <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center justify-center">
@@ -372,41 +429,114 @@
 
         // Route handling
         function handleRouting() {
+            // Reset initial values
+            window.initialGrade = 'all';
+            window.initialStream = 'all';
+            
             // Get the hash from the URL (without the # symbol)
             const hash = window.location.hash.substring(1);
             
+            if (!hash) return; // No hash, use default values
+            
             // Check for grade in hash
-            const gradeMatch = hash.match(/grade\/(\w+)/);
+            const gradeMatch = hash.match(/class\/(\w+)/);
+            const streamMatch = hash.match(/stream\/([^\/]+)/);
             
             if (gradeMatch && gradeMatch[1]) {
                 const grade = gradeMatch[1];
                 window.initialGrade = grade;
-                document.title = `Grade ${grade} Courses | Course Purchase Platform`;
-            } else {
-                window.initialGrade = 'all';
-                document.title = 'All Courses | Course Purchase Platform';
+                document.title = `Class ${grade} Courses | Course Purchase Platform`;
+                
+                // Check for stream parameter
+                if (streamMatch && streamMatch[1]) {
+                    const streamValue = decodeURIComponent(streamMatch[1]);
+                    window.initialStream = streamValue;
+                    document.title = `Class ${grade} - ${streamValue} Courses | Course Purchase Platform`;
+                }
             }
+            
+            // console.log(`Routing: Grade=${window.initialGrade}, Stream=${window.initialStream}`);
         }
 
         // Update URL without page reload
-        function updateURL(grade) {
-            // Update page title
+        function updateURL(grade, stream) {
+            // Format the URL and title based on filters
+            let newHash = '';
+            let newTitle = '';
+            
             if (grade === 'all') {
-                document.title = 'All Courses | Course Purchase Platform';
-                window.location.hash = '';
+                newTitle = 'All Courses | Course Purchase Platform';
+                newHash = ''; 
             } else {
-                document.title = `Grade ${grade} Courses | Course Purchase Platform`;
-                window.location.hash = `grade/${grade}`;
+                if (stream && stream !== 'all') {
+                    newTitle = `Class ${grade} - ${stream} Courses | Course Purchase Platform`;
+                    newHash = `class/${grade}/stream/${encodeURIComponent(stream)}`;
+                } else {
+                    newTitle = `Class ${grade} Courses | Course Purchase Platform`;
+                    newHash = `class/${grade}`;
+                }
+            }
+            
+            // Update the document title
+            document.title = newTitle;
+            
+            // Update URL hash immediately, ensuring we don't trigger a page reload
+            if (window.location.hash !== `#${newHash}`) {
+                // Temporarily remove the hashchange listener to prevent recursion
+                window.removeEventListener('hashchange', handleHashChange);
+                
+                // Update the hash
+                window.location.hash = newHash;
+                
+                // Re-add the listener after a short delay
+                setTimeout(() => {
+                    window.addEventListener('hashchange', handleHashChange);
+                }, 10);
+            }
+        }
+
+        // Extract the hashchange handling to a separate function
+        function handleHashChange() {
+            // Get previous values before routing
+            const prevGrade = window.initialGrade;
+            const prevStream = window.initialStream;
+            
+            // Update routing values
+            handleRouting();
+            
+            if (allCourses.length) {
+                // Check if grade has changed
+                const gradeChanged = prevGrade !== window.initialGrade;
+                
+                // Apply grade filter first
+                filterCoursesByGrade(window.initialGrade);
+                
+                // Apply stream filter if exists (and is not 'all')
+                // AND only if grade hasn't changed or we came from a URL with stream param
+                if (window.initialStream && window.initialStream !== 'all' && !gradeChanged) {
+                    // Check if the stream actually exists in the current grade
+                    const currentGradeCourses = allCourses.filter(course => 
+                        window.initialGrade === 'all' || course.Grade === window.initialGrade);
+                    
+                    const streamExists = currentGradeCourses.some(course => 
+                        course.Stream === window.initialStream);
+                    
+                    if (streamExists) {
+                        setTimeout(() => {
+                            filterCoursesByStream(window.initialStream);
+                        }, 100); // Small delay to ensure grade filter is applied first
+                    } else {
+                        // console.log(`Stream '${window.initialStream}' not found in grade ${window.initialGrade}`);
+                        // Reset to 'all' streams if specified stream doesn't exist
+                        window.initialStream = 'all';
+                        updateURL(window.initialGrade, 'all');
+                    }
+                }
             }
         }
 
         // Handle browser hash changes
-        window.addEventListener('hashchange', function() {
-            handleRouting();
-            if (allCourses.length) {
-                filterCoursesByGrade(window.initialGrade);
-            }
-        });
+        window.addEventListener('hashchange', handleHashChange);
 
         // Initialize routing on page load
         handleRouting();
@@ -442,7 +572,21 @@
                 
                 // Apply initial grade filter if set by route
                 if (window.initialGrade && window.initialGrade !== 'all') {
+                    // Set current stream for URL-based navigation
+                    if (window.initialStream && window.initialStream !== 'all') {
+                        window.currentStream = window.initialStream;
+                    }
+                    
+                    // Apply grade filter (this will create stream tabs too)
                     filterCoursesByGrade(window.initialGrade);
+                    
+                    // Apply stream filter if exists after a short delay
+                    // and ONLY if it came from the URL (window.initialStream)
+                    if (window.initialStream && window.initialStream !== 'all') {
+                        setTimeout(() => {
+                            filterCoursesByStream(window.initialStream);
+                        }, 100); // Small delay to ensure grade filter is applied first
+                    }
                 }
 
                 // Start toast notifications after courses are loaded
@@ -468,7 +612,7 @@
                     class="grade-tab ${grade === window.initialGrade ? 'active' : ''}" 
                     data-grade="${grade}"
                 >
-                    ${grade === 'all' ? 'All' : grade}
+                    ${grade === 'all' ? 'All Classes' : `Class ${grade}`}
                 </button>
             `).join('');
             
@@ -486,6 +630,64 @@
                     // Add active class to clicked tab
                     clickedTab.classList.add('active');
                 }
+            });
+        }
+
+        // Create stream tabs based on the selected grade
+        function createStreamTabs(grade) {
+            const streamContainer = document.getElementById('stream-filters-container');
+            const streamTabs = document.getElementById('stream-tabs');
+            streamTabs.classList.add('grade-tabs-container'); // Reuse the same style
+            
+            // If 'all' is selected, hide the stream tabs
+            if (grade === 'all') {
+                streamContainer.classList.add('hidden');
+                return;
+            }
+            
+            // Get courses for the selected grade
+            const filteredCourses = allCourses.filter(course => course.Grade === grade);
+            
+            // Get unique non-null streams from filtered courses
+            const uniqueStreamValues = [...new Set(filteredCourses.map(course => course.Stream).filter(Boolean))];
+            
+            // Only show stream tabs if there's at least one non-null stream value
+            if (uniqueStreamValues.length === 0) {
+                streamContainer.classList.add('hidden');
+                return;
+            }
+            
+            // Add 'all' as the first option
+            const uniqueStreams = ['all', ...uniqueStreamValues];
+            
+            // For a grade change, we want to force 'all' as the active stream
+            // window.currentStream should already be 'all' when coming from filterCoursesByGrade
+            const activeStream = 'all';
+            
+            // Create tabs dynamically
+            const streamsHTML = uniqueStreams.map(stream => {
+                const isActive = stream === activeStream;
+                return `
+                <button 
+                    class="grade-tab ${isActive ? 'active' : ''}" 
+                    data-stream="${stream}"
+                >
+                    ${stream === 'all' ? 'All' : stream}
+                </button>
+            `}).join('');
+            
+            streamTabs.innerHTML = streamsHTML;
+            streamContainer.classList.remove('hidden');
+            
+            // Add click event listener to handle tab activation
+            streamTabs.querySelectorAll('.grade-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Get the stream value from data attribute
+                    const streamValue = this.getAttribute('data-stream');
+                    
+                    // Call filterCoursesByStream with the stream value
+                    filterCoursesByStream(streamValue);
+                });
             });
         }
 
@@ -517,7 +719,54 @@
                 ? allCourses
                 : allCourses.filter(course => course.Grade === grade);
 
-            updateURL(grade);            
+            // Reset current stream filter - IMPORTANT when changing grades
+            window.currentStream = 'all';
+            
+            // Create stream tabs for this grade (will respect window.currentStream = 'all')
+            createStreamTabs(grade);
+        
+            // Update URL with just the grade (no stream)
+            updateURL(grade, 'all');            
+            renderCourses(filteredCourses);
+        }
+
+        // Filter courses by stream (after grade is selected)
+        function filterCoursesByStream(stream) {
+            // Store the current stream
+            window.currentStream = stream;
+            
+            // Update stream tabs styling
+            const streamTabs = document.querySelectorAll('#stream-tabs .grade-tab');
+            streamTabs.forEach(tab => {
+                // Remove all styling classes
+                tab.classList.remove('active', 'bg-blue-500', 'text-white');
+                // Add default styling
+                if (tab.getAttribute('data-stream') === stream) {
+                    // Add active styling
+                    tab.classList.add('active');
+                }
+            });
+
+            // Get the current grade filter
+            const activeGradeTab = document.querySelector('#grade-tabs .grade-tab.active');
+            const currentGrade = activeGradeTab ? activeGradeTab.getAttribute('data-grade') : 'all';
+            
+            // First filter by grade
+            let filteredCourses = currentGrade === 'all' 
+                ? allCourses 
+                : allCourses.filter(course => course.Grade === currentGrade);
+            
+            // Then filter by stream if not 'all'
+            if (stream !== 'all') {
+                filteredCourses = filteredCourses.filter(course => course.Stream === stream);
+            } else {
+                // When 'all' is selected, include courses with null/undefined streams too
+                // This is already handled since we're not filtering by stream at all
+            }
+            
+            // Update URL with both grade and stream
+            updateURL(currentGrade, stream);
+            
             renderCourses(filteredCourses);
         }
 
@@ -568,7 +817,7 @@
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">${course['Course Name']}</h3>
                         <div class="mb-2">
                             <span class="bg-blue-100 mr-2 my-2 text-blue-800 text-xs px-2 py-1 rounded-full">Batch: ${course['Batch ID']} </span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Grade ${course.Grade}</span>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Class ${course.Grade}</span>
                         </div>
                         <div class="flex items-center mb-4">
                             ${originalPrice > 0 ? `
@@ -821,13 +1070,7 @@
                 document.getElementById('payment-confirmation').classList.add('hidden');
             }
         }
-
-        // Toggle mobile menu
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const nav = document.getElementById('main-nav');
-            nav.classList.toggle('hidden');
-            nav.classList.toggle('md:block');
-        });
+        
     </script>
 </body>
 </html>
