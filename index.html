@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-KJD7BHMQ');</script>
+    <!-- End Google Tag Manager -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Purchase Platform</title>
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
@@ -295,6 +302,10 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KJD7BHMQ"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <header class="bg-white shadow-md">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center">
@@ -846,6 +857,21 @@
         function openPurchaseModal(courseId, courseAmount) {
             document.getElementById('selected-course-id').value = courseId;
             document.getElementById('selected-course-amount').value = courseAmount;
+            
+            // Get course name from the displayed courses
+            const courseName = document.querySelector(`[onclick="openPurchaseModal('${courseId}', ${courseAmount})"]`)
+                .closest('.brochure-card')
+                .querySelector('h3').textContent;
+
+            // Push checkout initiated event to dataLayer
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': 'checkout_initiated',
+                'course_id': courseId,
+                'course_name': courseName,
+                'amount': courseAmount
+            });
+
             if (courseAmount > 0) {
                 document.getElementById('purchase-modal').classList.remove('hidden');
             } else {
@@ -952,6 +978,23 @@
             statusText.className = 'text-2xl font-bold mb-6';
 
             if (success) {
+                // Get course details from the form
+                const courseId = document.getElementById('selected-course-id').value;
+                const courseAmount = document.getElementById('selected-course-amount').value;
+                const courseName = document.querySelector(`[onclick="openPurchaseModal('${courseId}', ${courseAmount})"]`)
+                    .closest('.brochure-card')
+                    .querySelector('h3').textContent;
+
+                // Push purchase success event to dataLayer
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                    'event': 'purchase_successful',
+                    'course_id': courseId,
+                    'course_name': courseName,
+                    'amount': courseAmount,
+                    'transaction_id': paymentId
+                });
+
                 // Set success message and styles
                 statusText.textContent = 'Payment Successful!';
                 statusText.classList.add('text-green-500');
@@ -982,7 +1025,6 @@
                     </lottie-player>
                 `;
             }
-
 
             document.getElementById('close-confirmation').onclick = () => {
                 confirmationModal.classList.add('hidden');
@@ -1074,4 +1116,3 @@
     </script>
 </body>
 </html>
-
