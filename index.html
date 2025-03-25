@@ -38,13 +38,16 @@
             transition: all 0.3s ease;
             width: 300px;
             height: 470px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to bottom, #ffffff, #fafafa);
         }
         .brochure-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
         }
         .modal-backdrop {
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
         }
         @keyframes slideIn {
             from { transform: translateY(-10px); opacity: 0; }
@@ -55,10 +58,14 @@
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 0;
+            gap: 12px;
+            padding: 16px 24px;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin: 20px 0;
         }
         .grade-tabs-container::-webkit-scrollbar {
             display: none;
@@ -66,49 +73,154 @@
         .grade-tab {
             flex-shrink: 0;
             font-weight: 500;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 9999px;
             transition: all 0.3s ease;
             cursor: pointer;
             white-space: nowrap;
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
         }
         .grade-tab.active {
             background-color: #3B82F6;
             color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
         .grade-tab:not(.active) {
-            background-color: #E5E7EB;
+            background-color: #F3F4F6;
             color: #4B5563;
         }
         .grade-tab:hover:not(.active) {
-            background-color: #F3F4F6;
+            background-color: #E5E7EB;
+            transform: translateY(-1px);
         }
         .animate-slide-in {
-            /* animation: slideIn 0.3s ease forwards; */
+            animation: slideIn 0.3s ease forwards;
         }
         .error-input {
-            border-color: red;
+            border-color: #EF4444;
+            box-shadow: 0 0 0 1px #EF4444;
         }
         .grade-tab {
             transition: all 0.3s ease;
         }
-        .grade-tab.active {
-            background-color: #3B82F6;
-            color: white;
-        }
 
         .custom-orange-btn {
-            border: 2px solid #f97316; /* Orange color */
-            color: #f97316; /* Orange text */
-            padding: 0.5rem 1.5rem;
-            border-radius: 9999px; /* Fully rounded */
+            border: 2px solid #f97316;
+            color: #f97316;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
             background-color: transparent;
             font-size: 1rem;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            letter-spacing: 0.01em;
         }
         .custom-orange-btn:hover {
-            background-color: #ffedd5; /* Light orange */
+            background-color: #fff7ed;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+        }
+
+        #courses-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .course-image {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+            background: #f8fafc;
+        }
+
+        .course-content {
+            padding: 20px;
+        }
+
+        .course-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .course-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .course-tag {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .batch-tag {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .grade-tag {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .price-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .original-price {
+            color: #64748b;
+            text-decoration: line-through;
+            font-size: 0.95rem;
+        }
+
+        .discounted-price {
+            color: #16a34a;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .purchase-button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .purchase-button:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .download-button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: block;
+            text-decoration: none;
         }
 
         #toast-container {
@@ -127,28 +239,46 @@
             background: rgba(33, 33, 33, 0.95);
             color: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Mobile-specific styles */
         @media (max-width: 768px) {
             #toast-container {
                 top: 80px;
                 right: 10px;
-                width: 300px;
+                width: calc(100% - 20px);
+                max-width: 400px;
             }
 
             .toast {
-                padding: 10px 12px;
+                padding: 12px 16px;
             }
 
             .toast .message {
-                font-size: 0.75rem;
-                line-height: 1.2;
+                font-size: 0.875rem;
+            }
+
+            .grade-tabs-container {
+                padding: 12px 16px;
+                margin: 16px 0;
+            }
+
+            .grade-tab {
+                padding: 8px 16px;
+                font-size: 0.875rem;
+            }
+
+            #courses-container {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .course-content {
+                padding: 16px;
             }
         }
 
