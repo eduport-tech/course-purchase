@@ -863,15 +863,6 @@
                 .closest('.brochure-card')
                 .querySelector('h3').textContent;
 
-            // Push checkout initiated event to dataLayer
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                'event': 'checkout_initiated',
-                'course_id': courseId,
-                'course_name': courseName,
-                'amount': courseAmount
-            });
-
             if (courseAmount > 0) {
                 document.getElementById('purchase-modal').classList.remove('hidden');
             } else {
@@ -889,6 +880,9 @@
             const formData = new FormData(e.target);
             const email = formData.get('email');
             const phone = formData.get('phone');
+            const name = formData.get('name');
+            const courseId = formData.get('course-id');
+            const courseAmount = formData.get('course-amount');
 
             const emailError = document.getElementById('email-error');
             const nameError = document.getElementById('name-error');
@@ -905,7 +899,7 @@
             phoneInput.classList.remove('error-input');
             nameError.classList.add('hidden');
 
-            if (!formData.get('name')) {
+            if (!name) {
                 nameError.classList.remove('hidden');
                 nameInput.classList.add('error-input');
                 isValid = false;
@@ -925,19 +919,38 @@
 
             if (!isValid) return;
 
-            const courseId = formData.get('course-id');
-            const courseAmount = formData.get('course-amount');
-            const name = formData.get('name');
+            // Get course name from the displayed courses
+            const courseName = document.querySelector(`[onclick="openPurchaseModal('${courseId}', ${courseAmount})"]`)
+                .closest('.brochure-card')
+                .querySelector('h3').textContent;
+
+            // Push checkout initiated event to dataLayer with user details
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': 'checkout_initiated',
+                'course_id': courseId,
+                'course_name': courseName,
+                'amount': courseAmount,
+                'user_name': name,
+                'user_email': email,
+                'user_phone': phone
+            });
 
             var options = {
                 key: "rzp_live_0UgwbbPoWnTHWE",
-                // key: "rzp_test_sotrour4Ez6eFy",
                 amount: courseAmount * 100,
                 currency: "INR",
                 name: "Your Course Platform",
                 description: `Course Purchase: Batch ${courseId}`,
                 handler: function (response) {
-                    showPaymentConfirmation(true, response.razorpay_payment_id);
+                    showPaymentConfirmation(true, response.razorpay_payment_id, {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        courseId: courseId,
+                        courseName: courseName,
+                        amount: courseAmount
+                    });
                 },
                 prefill: {
                     name: name,
@@ -964,7 +977,7 @@
             closePurchaseModal();
         });
 
-        function showPaymentConfirmation(success, paymentId) {
+        function showPaymentConfirmation(success, paymentId, userDetails) {
             const confirmationModal = document.getElementById('payment-confirmation');
             const statusText = document.getElementById('payment-status');
             const animationContainer = document.getElementById('animation-container');
@@ -978,21 +991,17 @@
             statusText.className = 'text-2xl font-bold mb-6';
 
             if (success) {
-                // Get course details from the form
-                const courseId = document.getElementById('selected-course-id').value;
-                const courseAmount = document.getElementById('selected-course-amount').value;
-                const courseName = document.querySelector(`[onclick="openPurchaseModal('${courseId}', ${courseAmount})"]`)
-                    .closest('.brochure-card')
-                    .querySelector('h3').textContent;
-
-                // Push purchase success event to dataLayer
+                // Push purchase success event to dataLayer with user details
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push({
                     'event': 'purchase_successful',
-                    'course_id': courseId,
-                    'course_name': courseName,
-                    'amount': courseAmount,
-                    'transaction_id': paymentId
+                    'course_id': userDetails.courseId,
+                    'course_name': userDetails.courseName,
+                    'amount': userDetails.amount,
+                    'transaction_id': paymentId,
+                    'user_name': userDetails.name,
+                    'user_email': userDetails.email,
+                    'user_phone': userDetails.phone
                 });
 
                 // Set success message and styles
