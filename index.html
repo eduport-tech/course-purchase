@@ -564,7 +564,16 @@
 </div>
 
     <script>
-        const API_URL = 'https://raw.githubusercontent.com/eduport-tech/course-purchase/refs/heads/main/data/res.json';
+        const NEW_JSON_URL = 'https://raw.githubusercontent.com/eduport-tech/course-purchase/refs/heads/main/data/new.json';
+        const RES_JSON_URL = 'https://raw.githubusercontent.com/eduport-tech/course-purchase/refs/heads/main/data/res.json';
+        
+        // Create a URLSearchParams object from the current page's query string
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Check if the 'source' parameter is present and equals 'theevandi'
+        const API_URL = urlParams.get('source') === 'theevandi' ? NEW_JSON_URL : RES_JSON_URL;
+        
+
         // const API_URL = 'data/res.json';
         let allCourses = [];
 
