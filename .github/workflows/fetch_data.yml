@@ -19,10 +19,14 @@ jobs:
     - name: Ensure data directory exists
       run: mkdir -p data
 
+    # - name: Fetch Google Sheets Data
+    #   run: |
+    #       curl -L -s -o data/res.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec"
     - name: Fetch Google Sheets Data
       run: |
-          curl -L -s -o data/res.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec"
-  
+        curl -L -s -o data/res.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec"
+        curl -L -s -o data/new.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec?path=new"
+
     - name: Commit and push changes if there are any
       run: |
         git config --global user.name 'github-actions'
