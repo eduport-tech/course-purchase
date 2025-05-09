@@ -26,6 +26,7 @@ jobs:
       run: |
         curl -L -s -o data/res.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec"
         curl -L -s -o data/new.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec?path=new"
+        curl -L -s -o data/aplus.json "https://script.google.com/macros/s/AKfycbx9wzztut7gq4z2yBn1Fov7t-o2-RLu4QqLReCQfU7TnSopDBvrg_exud8RSIcKppOj/exec?path=fullaplus"
 
     - name: Commit and push changes if there are any
       run: |
@@ -34,6 +35,8 @@ jobs:
         git pull origin main --ff-only
         git add data/res.json
         git add data/new.json
+        git add data/aplus.json
+        
         git commit -m "Update Google Sheets data" || echo "No changes to commit"
         git push origin main || echo "Nothing to push"
       env:
