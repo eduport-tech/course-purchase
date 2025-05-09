@@ -33,6 +33,7 @@ jobs:
         git config --global user.email 'github-actions@github.com'
         git pull origin main --ff-only
         git add data/res.json
+        git add data/new.json
         git commit -m "Update Google Sheets data" || echo "No changes to commit"
         git push origin main || echo "Nothing to push"
       env:
