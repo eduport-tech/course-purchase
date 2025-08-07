@@ -10,7 +10,7 @@
     })(window,document,'script','dataLayer','GTM-KJD7BHMQ');</script>
     <!-- End Google Tag Manager -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Purchase Platform</title>
+    <title>Buy Eduport Courses</title>
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -440,7 +440,7 @@
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center">
                 <img src="assets/image.png" alt="Eduport" class="h-10 mr-4">
-                    <h1 class="text-xl font-bold text-gray-800 hidden md:block">Course Platform</h1>
+                    <h1 class="text-xl font-bold text-gray-800 hidden md:block">Buy Eduport Courses</h1>
             </div>
             <div class="text-gray-700 font-medium">
                 <a href="tel:+919048899553" class="flex items-center">
@@ -596,13 +596,13 @@
             if (gradeMatch && gradeMatch[1]) {
                 const grade = gradeMatch[1];
                 window.initialGrade = grade;
-                document.title = `${grade} Courses | Course Purchase Platform`;
+                document.title = `${grade} Courses | Buy Eduport Courses`;
                 
                 // Check for stream parameter
                 if (streamMatch && streamMatch[1]) {
                     const streamValue = decodeURIComponent(streamMatch[1]);
                     window.initialStream = streamValue;
-                    document.title = `${grade} - ${streamValue} Courses | Course Purchase Platform`;
+                    document.title = `${grade} - ${streamValue} Courses | Buy Eduport Courses`;
                 }
             }
             
@@ -616,14 +616,14 @@
             let newTitle = '';
             
             if (grade === 'all') {
-                newTitle = 'All Courses | Course Purchase Platform';
+                newTitle = 'All Courses | Buy Eduport Courses';
                 newHash = ''; 
             } else {
                 if (stream && stream !== 'all') {
-                    newTitle = `${grade} - ${stream} Courses | Course Purchase Platform`;
+                    newTitle = `${grade} - ${stream} Courses | Buy Eduport Courses`;
                     newHash = `class/${grade}/stream/${encodeURIComponent(stream)}`;
                 } else {
-                    newTitle = `${grade} Courses | Course Purchase Platform`;
+                    newTitle = `${grade} Courses | Buy Eduport Courses`;
                     newHash = `class/${grade}`;
                 }
             }
